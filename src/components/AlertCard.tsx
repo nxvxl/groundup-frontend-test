@@ -4,7 +4,7 @@ import { Alert } from "../types";
 function AlertCard({ alert, current }: { alert: Alert; current: string }) {
   const border = alert._id === current ? "2px solid #1976d2" : "0px"
   return (
-    <Card sx={{ m: 2, border }}>
+    <Card sx={{ m: 2, border, cursor: "pointer" }}>
       <CardContent>
         <Grid container direction="column">
           <Grid item container alignItems="center" gap={1}>

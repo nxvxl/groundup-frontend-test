@@ -27,6 +27,13 @@ function AlertDetails({
   const soundSrc = API_URL + "/data/" + item.soundClip;
   const { WaveSurfer } = window as any;
 
+  const reasonOptions: { [key: string]: string[] } = {
+    "CNC Machine": ["Spindle Error", "Axis Problem", "Normal"],
+    "Milling Machine": ["Machine Crash", "Router Fault", "Normal"],
+  };
+
+  const actionOptions = ["Immediate", "Later", "No Action"];
+
   const submit = () => {
     console.log({
       reason,
@@ -41,7 +48,7 @@ function AlertDetails({
     };
 
     updateAlert({ id: item._id, data }).then(() => {
-      alert("Updated successfully!")
+      alert("Updated successfully!");
       onUpdate();
     });
   };
@@ -118,8 +125,11 @@ function AlertDetails({
             <MenuItem value="" disabled>
               Unknown Anomally
             </MenuItem>
-            <MenuItem value="Reason 1">Reason 1</MenuItem>
-            <MenuItem value="Reason 2">Reason 2</MenuItem>
+            {(reasonOptions[item.machine] || []).map((reason) => (
+              <MenuItem value={reason} key={reason}>
+                {reason}
+              </MenuItem>
+            ))}
           </Select>
         </Grid>
         <Grid xs={4}>
@@ -132,8 +142,11 @@ function AlertDetails({
             <MenuItem value="" disabled>
               Select Action
             </MenuItem>
-            <MenuItem value="Action 1">Action 1</MenuItem>
-            <MenuItem value="Action 2">Action 2</MenuItem>
+            {actionOptions.map((action) => (
+              <MenuItem value={action} key={action}>
+                {action}
+              </MenuItem>
+            ))}
           </Select>
         </Grid>
         <Grid xs={8}>
