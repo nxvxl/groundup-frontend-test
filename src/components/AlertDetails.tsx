@@ -1,0 +1,158 @@
+import {
+  Box,
+  Typography,
+  Divider,
+  Grid,
+  Select,
+  MenuItem,
+  TextField,
+  Button,
+} from "@mui/material";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { API_URL, updateAlert } from "../api/alerts.api";
+import { Alert } from "../types";
+import colormap from "../data/colormap";
+
+function AlertDetails({
+  alert,
+  onUpdate,
+}: {
+  alert: Alert;
+  onUpdate: () => void;
+}) {
+  const [reason, setReason] = useState(alert.reason || "");
+  const [action, setAction] = useState(alert.action || "");
+  const [comment, setComment] = useState(alert.comment || "");
+
+  const soundSrc = API_URL + "/data/" + alert.soundClip;
+  const { WaveSurfer } = window as any;
+
+  const submit = () => {
+    console.log({
+      reason,
+      action,
+      comment,
+    });
+    const data = {
+      ...alert,
+      reason,
+      action,
+      comment,
+    };
+
+    updateAlert({ id: alert._id, data }).then(() => {
+      onUpdate();
+    });
+  };
+
+  const waveformRef = useRef<any>(null);
+  const spectrogramRef = useRef<any>(null);
+  let wavesurfer: any;
+
+  useEffect(() => {
+    setReason(alert.reason || "");
+    setAction(alert.action || "");
+    setComment(alert.comment || "");
+    if (waveformRef.current && !wavesurfer) {
+      wavesurfer = WaveSurfer.create({
+        container: waveformRef.current,
+        plugins: [
+          WaveSurfer.spectrogram.create({
+            container: spectrogramRef.current,
+            labels: true,
+            height: 256,
+            colorMap: colormap,
+          }),
+        ],
+      });
+    }
+
+    if (wavesurfer) {
+      const children = Array.from(waveformRef.current.children);
+      children.forEach((child, index) => {
+        if (index !== children.length - 1) {
+          waveformRef.current.removeChild(child);
+        }
+      });
+      wavesurfer.load(soundSrc);
+    }
+  }, [alert]);
+
+  return (
+    <Box m={4}>
+      <Typography fontSize={32} component="h1">
+        Alert ID #{alert._id}
+      </Typography>
+      <Typography component="h5">
+        Detected at {new Date(alert.timestamp * 1000).toISOString()}
+      </Typography>
+      <Divider sx={{ my: 2 }} />
+
+      <Box>
+        <Typography fontSize={20}>Anomaly Machine Output</Typography>
+        <audio controls src={soundSrc} />
+        <Grid container>
+          <Grid item xs={6}>
+            <div ref={waveformRef}></div>
+          </Grid>
+        </Grid>
+        <Grid container>
+          <Grid item xs={6}>
+            <div ref={spectrogramRef}></div>
+          </Grid>
+        </Grid>
+      </Box>
+      <Grid container direction="column" gap={4} mt={2}>
+        <Grid xs={4}>
+          <Typography fontWeight={700}>Equipment</Typography>
+          <Typography>{alert.machine}</Typography>
+        </Grid>
+        <Grid xs={4}>
+          <Typography fontWeight={700}>Suspected Reason</Typography>
+          <Select
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            fullWidth
+          >
+            <MenuItem value="" disabled>
+              Unknown Anomally
+            </MenuItem>
+            <MenuItem value="Reason 1">Reason 1</MenuItem>
+            <MenuItem value="Reason 2">Reason 2</MenuItem>
+          </Select>
+        </Grid>
+        <Grid xs={4}>
+          <Typography fontWeight={700}>Action Required</Typography>
+          <Select
+            value={action}
+            onChange={(e) => setAction(e.target.value)}
+            fullWidth
+          >
+            <MenuItem value="" disabled>
+              Select Action
+            </MenuItem>
+            <MenuItem value="Action 1">Action 1</MenuItem>
+            <MenuItem value="Action 2">Action 2</MenuItem>
+          </Select>
+        </Grid>
+        <Grid xs={8}>
+          <Typography fontWeight={700}>Comment</Typography>
+          <TextField
+            multiline
+            fullWidth
+            rows={5}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          ></TextField>
+        </Grid>
+      </Grid>
+      <Box my={4}>
+        <Button variant="contained" color="primary" onClick={submit}>
+          Update
+        </Button>
+      </Box>
+    </Box>
+  );
+}
+
+export default AlertDetails;
