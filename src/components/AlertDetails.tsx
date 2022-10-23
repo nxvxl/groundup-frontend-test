@@ -14,17 +14,17 @@ import { Alert } from "../types";
 import colormap from "../data/colormap";
 
 function AlertDetails({
-  alert,
+  alert: item,
   onUpdate,
 }: {
   alert: Alert;
   onUpdate: () => void;
 }) {
-  const [reason, setReason] = useState(alert.reason || "");
-  const [action, setAction] = useState(alert.action || "");
-  const [comment, setComment] = useState(alert.comment || "");
+  const [reason, setReason] = useState(item.reason || "");
+  const [action, setAction] = useState(item.action || "");
+  const [comment, setComment] = useState(item.comment || "");
 
-  const soundSrc = API_URL + "/data/" + alert.soundClip;
+  const soundSrc = API_URL + "/data/" + item.soundClip;
   const { WaveSurfer } = window as any;
 
   const submit = () => {
@@ -34,13 +34,14 @@ function AlertDetails({
       comment,
     });
     const data = {
-      ...alert,
+      ...item,
       reason,
       action,
       comment,
     };
 
-    updateAlert({ id: alert._id, data }).then(() => {
+    updateAlert({ id: item._id, data }).then(() => {
+      alert("Updated successfully!")
       onUpdate();
     });
   };
@@ -50,9 +51,9 @@ function AlertDetails({
   let wavesurfer: any;
 
   useEffect(() => {
-    setReason(alert.reason || "");
-    setAction(alert.action || "");
-    setComment(alert.comment || "");
+    setReason(item.reason || "");
+    setAction(item.action || "");
+    setComment(item.comment || "");
     if (waveformRef.current && !wavesurfer) {
       wavesurfer = WaveSurfer.create({
         container: waveformRef.current,
@@ -76,15 +77,15 @@ function AlertDetails({
       });
       wavesurfer.load(soundSrc);
     }
-  }, [alert]);
+  }, [item]);
 
   return (
     <Box m={4}>
       <Typography fontSize={32} component="h1">
-        Alert ID #{alert._id}
+        Alert ID #{item._id}
       </Typography>
       <Typography component="h5">
-        Detected at {new Date(alert.timestamp * 1000).toISOString()}
+        Detected at {new Date(item.timestamp * 1000).toISOString()}
       </Typography>
       <Divider sx={{ my: 2 }} />
 
@@ -105,7 +106,7 @@ function AlertDetails({
       <Grid container direction="column" gap={4} mt={2}>
         <Grid xs={4}>
           <Typography fontWeight={700}>Equipment</Typography>
-          <Typography>{alert.machine}</Typography>
+          <Typography>{item.machine}</Typography>
         </Grid>
         <Grid xs={4}>
           <Typography fontWeight={700}>Suspected Reason</Typography>
